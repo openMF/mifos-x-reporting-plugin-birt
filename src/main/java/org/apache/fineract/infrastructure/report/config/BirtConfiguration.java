@@ -28,13 +28,13 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class BirtConfiguration {
 
-  private static final Logger LOG = LoggerFactory.getLogger(BirtConfiguration.class);
+  private static final Logger logger = LoggerFactory.getLogger(BirtConfiguration.class);
   private IReportEngine reportEngine;
 
   @PostConstruct
   public void startBirtEngine() {
     try {
-      LOG.info("Initializing Eclipse BIRT Platform...");
+      logger.info("Initializing Eclipse BIRT Platform...");
 
       EngineConfig config = new EngineConfig();
       // Redirect BIRT internal logging to prevent console spam.
@@ -51,10 +51,10 @@ public class BirtConfiguration {
 
       // Create the Engine instance
       reportEngine = factory.createReportEngine(config);
-      LOG.info("Eclipse BIRT Platform started successfully. Engine is ready.");
+      logger.info("Eclipse BIRT Platform started successfully. Engine is ready.");
 
     } catch (BirtException e) {
-      LOG.error("Failed to start Eclipse BIRT Engine. Reports will not function.", e);
+      logger.error("Failed to start Eclipse BIRT Engine. Reports will not function.", e);
       // We consciously do NOT throw a RuntimeException here.
       // As, if BIRT fails, Fineract should still start up for other operations.
     }
@@ -72,11 +72,11 @@ public class BirtConfiguration {
   @PreDestroy
   public void stopBirtEngine() {
     if (reportEngine != null) {
-      LOG.info("Destroying BIRT Report Engine...");
+      logger.info("Destroying BIRT Report Engine...");
       reportEngine.destroy();
     }
-    LOG.info("Shutting down BIRT Platform...");
+    logger.info("Shutting down BIRT Platform...");
     Platform.shutdown();
-    LOG.info("BIRT Platform shutdown complete.");
+    logger.info("BIRT Platform shutdown complete.");
   }
 }

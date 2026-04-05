@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import javax.sql.DataSource;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.infrastructure.core.api.ApiParameterHelper;
 import org.apache.fineract.infrastructure.core.config.FineractProperties;
@@ -60,11 +59,10 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 @Service
-@Slf4j
 @ReportService(type = "BIRT")
 public class BirtReportingProcessServiceImpl implements ReportingProcessService {
 
-  private static final Logger LOG = LoggerFactory.getLogger(ReportingProcessService.class);
+  private static final Logger logger = LoggerFactory.getLogger(ReportingProcessService.class);
 
   private final String mifosBaseDir = System.getProperty("user.home") + File.separator + ".mifosx";
   private final DatabasePasswordEncryptor databasePasswordEncryptor;
@@ -104,7 +102,7 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
 
   private void updateSubReportDataSources(ReportDesignHandle designHandle) {
     List<LibraryHandle> libraries = designHandle.getAllLibraries();
-    log.debug(
+    logger.debug(
         "updateSubReportDataSources() called. Library count: {}",
         libraries != null ? libraries.size() : 0);
     if (libraries != null) {
@@ -118,7 +116,7 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
 
   private void updateNestedLibraries(LibraryHandle libraryHandle) {
     List<LibraryHandle> nestedLibraries = libraryHandle.getAllLibraries();
-    log.debug(
+    logger.debug(
         "updateNestedLibraries() called. Nested library count: {}",
         nestedLibraries != null ? nestedLibraries.size() : 0);
     if (nestedLibraries != null) {
@@ -150,51 +148,51 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
       throw new PlatformDataIntegrityException(
           "error.msg.invalid.outputType", "No matching Output Type: " + outputType);
     }
-    log.info(
+    logger.info(
         "Processing BIRT report: name='{}', outputType='{}', locale='{}'",
         reportName,
         outputType,
         locale);
 
     String reportPath;
-    log.debug("locale {}", locale);
-    log.debug("language {}", language);
+    logger.debug("locale {}", locale);
+    logger.debug("language {}", language);
     if (locale != null && !"en".equalsIgnoreCase(locale.toString())) {
       reportPath =
           getReportPath() + reportName + "_" + locale.toString().toLowerCase() + ".rptdesign";
     } else {
       reportPath = getReportPath() + reportName + ".rptdesign";
     }
-    log.debug("Report path: {}", reportPath);
+    logger.debug("Report path: {}", reportPath);
 
     // load report definition
     IReportRunnable design;
 
     try {
-      log.info("Attempting to load report design from path: {}", reportPath);
+      logger.info("Attempting to load report design from path: {}", reportPath);
       if (!new File(reportPath).exists()) {
-        log.error("Report design file not found at path: {}", reportPath);
+        logger.error("Report design file not found at path: {}", reportPath);
         throw new PlatformDataIntegrityException(
             "error.msg.reporting.error", "Report file not found: " + reportPath);
       }
       design = reportEngine.openReportDesign(reportPath);
-      log.info("Report design loaded successfully: '{}'", reportPath);
+      logger.info("Report design loaded successfully: '{}'", reportPath);
       final var designHandle = (ReportDesignHandle) design.getDesignHandle();
 
       // Override Data Connection with tenant details
       setConnectionDetail(designHandle);
-      log.debug("Main report datasource connection details updated");
+      logger.debug("Main report datasource connection details updated");
 
       // Update subreport data sources
       updateSubReportDataSources(designHandle);
-      log.debug("Subreport datasource connection details updated");
+      logger.debug("Subreport datasource connection details updated");
 
       // Set Locale for the report
       final var task = reportEngine.createRunAndRenderTask(design);
 
       // Force fast-failure on major errors
       task.setErrorHandlingOption(IEngineTask.CANCEL_ON_ERROR);
-      log.debug("BIRT task created, error handling set to CANCEL_ON_ERROR");
+      logger.debug("BIRT task created, error handling set to CANCEL_ON_ERROR");
 
       try {
         if (StringUtils.isNotBlank(fineractBirtLocale)) {
@@ -205,7 +203,7 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
         }
 
         addParametersToReport(task, reportParams);
-        log.debug("Parameters bound to task successfully for report '{}'", reportName);
+        logger.debug("Parameters bound to task successfully for report '{}'", reportName);
 
         final var baos = new ByteArrayOutputStream();
 
@@ -216,10 +214,10 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
           pdfOptions.setOutputStream(baos);
           task.setRenderOption(pdfOptions);
           task.run();
-          log.debug(
+          logger.debug(
               "task.run() completed for report '{}', outputType='{}'", reportName, outputType);
           verifyTaskSuccess(task, reportName);
-          log.info(
+          logger.info(
               "Report '{}' generated successfully. Output size: {} bytes, type: '{}'",
               reportName,
               baos.size(),
@@ -232,10 +230,10 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
           excelOptions.setOutputStream(baos);
           task.setRenderOption(excelOptions);
           task.run();
-          log.debug(
+          logger.debug(
               "task.run() completed for report '{}', outputType='{}'", reportName, outputType);
           verifyTaskSuccess(task, reportName);
-          log.info(
+          logger.info(
               "Report '{}' generated successfully. Output size: {} bytes, type: '{}'",
               reportName,
               baos.size(),
@@ -254,10 +252,10 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
           excelOptions.setOutputStream(baos);
           task.setRenderOption(excelOptions);
           task.run();
-          log.debug(
+          logger.debug(
               "task.run() completed for report '{}', outputType='{}'", reportName, outputType);
           verifyTaskSuccess(task, reportName);
-          log.info(
+          logger.info(
               "Report '{}' generated successfully. Output size: {} bytes, type: '{}'",
               reportName,
               baos.size(),
@@ -276,10 +274,10 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
           csvOptions.setOutputStream(baos);
           task.setRenderOption(csvOptions);
           task.run();
-          log.debug(
+          logger.debug(
               "task.run() completed for report '{}', outputType='{}'", reportName, outputType);
           verifyTaskSuccess(task, reportName);
-          log.info(
+          logger.info(
               "Report '{}' generated successfully. Output size: {} bytes, type: '{}'",
               reportName,
               baos.size(),
@@ -299,10 +297,10 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
           htmlOptions.setOutputStream(baos);
           task.setRenderOption(htmlOptions);
           task.run();
-          log.debug(
+          logger.debug(
               "task.run() completed for report '{}', outputType='{}'", reportName, outputType);
           verifyTaskSuccess(task, reportName);
-          log.info(
+          logger.info(
               "Report '{}' generated successfully. Output size: {} bytes, type: '{}'",
               reportName,
               baos.size(),
@@ -317,7 +315,7 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
         task.close();
       }
     } catch (Exception e) {
-      log.error("error.msg.reporting.error:", e);
+      logger.error("error.msg.reporting.error:", e);
       throw new PlatformDataIntegrityException("error.msg.reporting.error", e.getMessage());
     }
   }
@@ -325,17 +323,17 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
   private void addParametersToReport(
       final IRunAndRenderTask task, final Map<String, String> queryParams) {
     final var currentUser = this.context.authenticatedUser();
-    log.debug("addParametersToReport() called for report, user='{}'", currentUser.getUsername());
+    logger.debug("addParametersToReport() called for report, user='{}'", currentUser.getUsername());
     try {
       final IGetParameterDefinitionTask paramTask =
           reportEngine.createGetParameterDefinitionTask(task.getReportRunnable());
-      log.debug("Parameter definition task created");
+      logger.debug("Parameter definition task created");
       try {
         for (final Object paramDefObj : paramTask.getParameterDefns(false)) {
           final IParameterDefn paramDefEntry = (IParameterDefn) paramDefObj;
           final var paramName = paramDefEntry.getName();
 
-          log.debug("paramName: {}", paramName);
+          logger.debug("paramName: {}", paramName);
 
           // Skip parameters that are injected server-side after this loop
           if (!paramName.equals("tenantUrl")
@@ -352,7 +350,7 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
             }
 
             final int dataType = paramDefEntry.getDataType();
-            log.debug("addParametersToReport({} : {} : {})", paramName, pValue, dataType);
+            logger.debug("addParametersToReport({} : {} : {})", paramName, pValue, dataType);
 
             if (dataType == IParameterDefn.TYPE_INTEGER) {
               task.setParameterValue(paramName, Integer.parseInt(pValue));
@@ -361,20 +359,20 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
               task.setParameterValue(paramName, Double.parseDouble(pValue));
             } else if (dataType == IParameterDefn.TYPE_DATE
                 || dataType == IParameterDefn.TYPE_DATE_TIME) {
-              log.debug("ParamName: {}", paramName);
-              log.debug("ParamValue: {}", pValue);
+              logger.debug("ParamName: {}", paramName);
+              logger.debug("ParamValue: {}", pValue);
               SimpleDateFormat sdf = new SimpleDateFormat("dd MMMM yyyy", Locale.ENGLISH);
               Date date = sdf.parse(pValue);
               long millis = date.getTime();
               java.sql.Date mySQLDate = new java.sql.Date(millis);
               task.setParameterValue(paramName, mySQLDate);
               // Logging the parsed date value for debugging
-              log.debug("Date parameter '{}' parsed and set to: {}", paramName, mySQLDate);
+              logger.debug("Date parameter '{}' parsed and set to: {}", paramName, mySQLDate);
             } else if (dataType == IParameterDefn.TYPE_BOOLEAN) {
               task.setParameterValue(paramName, Boolean.parseBoolean(pValue));
             } else {
-              log.debug("ParamName Unknown: {}", paramName);
-              log.debug("ParamValue Unknown: {}", pValue);
+              logger.debug("ParamName Unknown: {}", paramName);
+              logger.debug("ParamValue Unknown: {}", pValue);
               task.setParameterValue(paramName, pValue);
             }
           }
@@ -395,10 +393,10 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
               tenantConnection.getSchemaServerPort(),
               tenantConnection.getSchemaName(),
               tenantConnection.getSchemaConnectionParameters());
-      log.debug("Tenant JDBC URL resolved: '{}'", tenantUrl);
+      logger.debug("Tenant JDBC URL resolved: '{}'", tenantUrl);
 
       final var userhierarchy = currentUser.getOffice().getHierarchy();
-      log.debug("userhierarchy {}", userhierarchy);
+      logger.debug("userhierarchy {}", userhierarchy);
 
       task.setParameterValue("userhierarchy", userhierarchy);
 
@@ -426,7 +424,7 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
       task.setParameterValue("password", password);
 
     } catch (Exception e) {
-      log.error("error.msg.reporting.error:", e);
+      logger.error("error.msg.reporting.error:", e);
       throw new PlatformDataIntegrityException("error.msg.reporting.error", e.getMessage());
     }
   }
@@ -465,7 +463,7 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
   }
 
   private void setConnectionDetailOnDataSources(SlotHandle dataSources) {
-    log.debug("setConnectionDetailOnDataSources() called");
+    logger.debug("setConnectionDetailOnDataSources() called");
     final FineractPlatformTenant tenant = ThreadLocalContextUtil.getTenant();
     final FineractPlatformTenantConnection tenantConnection = tenant.getConnection();
 
@@ -497,9 +495,9 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
           dataSource.setProperty("odaURL", url);
           dataSource.setProperty("odaUser", user);
           dataSource.setProperty("odaPassword", password);
-          log.debug("Updated DataSource: {}", dataSource.getName());
+          logger.debug("Updated DataSource: {}", dataSource.getName());
         } catch (Exception e) {
-          log.error("Failed to update DataSource: " + dataSource.getName(), e);
+          logger.error("Failed to update DataSource: " + dataSource.getName(), e);
         }
       }
     }
@@ -539,7 +537,7 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
     }
     String jdbcUrl =
         toJdbcUrl(protocol, schemaServer, schemaPort, schemaName, schemaConnectionParameters);
-    log.debug("{}", jdbcUrl);
+    logger.debug("{}", jdbcUrl);
 
     return jdbcUrl;
   }
@@ -561,20 +559,20 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
   }
 
   private void verifyTaskSuccess(final IRunAndRenderTask task, final String reportName) {
-    log.debug("verifyTaskSuccess() called for report '{}'", reportName);
+    logger.debug("verifyTaskSuccess() called for report '{}'", reportName);
     final List<?> taskErrors = task.getErrors();
 
     if (taskErrors != null && !taskErrors.isEmpty()) {
       // Log all errors for debugging
       for (Object error : taskErrors) {
         if (error instanceof Throwable throwable) {
-          log.error(
+          logger.error(
               "BIRT internal error during report '{}': {}",
               reportName,
               throwable.getMessage(),
               throwable);
         } else {
-          log.error("BIRT internal error during report '{}': {}", reportName, error);
+          logger.error("BIRT internal error during report '{}': {}", reportName, error);
         }
       }
 
@@ -593,7 +591,7 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
 
     final int taskStatus = task.getStatus();
     if (taskStatus != IEngineTask.STATUS_SUCCEEDED) {
-      log.error("BIRT task did not succeed for report '{}'. Status: {}", reportName, taskStatus);
+      logger.error("BIRT task did not succeed for report '{}'. Status: {}", reportName, taskStatus);
       throw new PlatformDataIntegrityException(
           "error.msg.reporting.error", "Report generation failed. Task status: " + taskStatus);
     }
