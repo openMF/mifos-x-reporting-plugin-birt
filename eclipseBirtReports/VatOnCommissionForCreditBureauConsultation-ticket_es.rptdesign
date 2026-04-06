@@ -7,38 +7,6 @@
             <property name="id">4</property>
             <expression name="value" type="javascript">params["tenantUrl"].value</expression>
         </structure>
-        <structure>
-            <property name="name">odaDriverClass</property>
-            <property name="id">4</property>
-        </structure>
-        <structure>
-            <property name="name">odaUser</property>
-            <property name="id">4</property>
-        </structure>
-        <structure>
-            <property name="name">odaAutoCommit</property>
-            <property name="id">4</property>
-        </structure>
-        <structure>
-            <property name="name">odaIsolationMode</property>
-            <property name="id">4</property>
-        </structure>
-        <structure>
-            <property name="name">odaPassword</property>
-            <property name="id">4</property>
-        </structure>
-        <structure>
-            <property name="name">odaJndiName</property>
-            <property name="id">4</property>
-        </structure>
-        <structure>
-            <property name="name">OdaConnProfileName</property>
-            <property name="id">4</property>
-        </structure>
-        <structure>
-            <property name="name">OdaConnProfileStorePath</property>
-            <property name="id">4</property>
-        </structure>
     </list-property>
     <property name="units">in</property>
     <property name="iconFile">/templates/blank_report.gif</property>
@@ -121,6 +89,10 @@
                     <property name="analysis">dimension</property>
                     <text-property name="displayName">office_name</text-property>
                     <text-property name="heading">office_name</text-property>
+                </structure>
+                <structure>
+                    <property name="columnName">transaction_id</property>
+                    <property name="analysis">measure</property>
                 </structure>
                 <structure>
                     <property name="columnName">transaction_date</property>
@@ -259,83 +231,96 @@
                     <property name="name">client_name</property>
                     <property name="nativeName">client_name</property>
                     <property name="dataType">string</property>
+                    <property name="nativeDataType">0</property>
                 </structure>
                 <structure>
                     <property name="position">2</property>
                     <property name="name">client_id</property>
                     <property name="nativeName">client_id</property>
                     <property name="dataType">decimal</property>
+                    <property name="nativeDataType">0</property>
                 </structure>
                 <structure>
                     <property name="position">3</property>
                     <property name="name">account_no</property>
                     <property name="nativeName">account_no</property>
                     <property name="dataType">string</property>
+                    <property name="nativeDataType">0</property>
                 </structure>
                 <structure>
                     <property name="position">4</property>
                     <property name="name">office_name</property>
                     <property name="nativeName">office_name</property>
                     <property name="dataType">string</property>
+                    <property name="nativeDataType">0</property>
                 </structure>
                 <structure>
                     <property name="position">5</property>
                     <property name="name">transaction_id</property>
                     <property name="nativeName">transaction_id</property>
                     <property name="dataType">decimal</property>
+                    <property name="nativeDataType">0</property>
                 </structure>
                 <structure>
                     <property name="position">6</property>
                     <property name="name">transaction_date</property>
                     <property name="nativeName">transaction_date</property>
                     <property name="dataType">date</property>
+                    <property name="nativeDataType">0</property>
                 </structure>
                 <structure>
                     <property name="position">7</property>
                     <property name="name">commission_amount</property>
                     <property name="nativeName">commission_amount</property>
                     <property name="dataType">decimal</property>
+                    <property name="nativeDataType">0</property>
                 </structure>
                 <structure>
                     <property name="position">8</property>
                     <property name="name">charge_name</property>
                     <property name="nativeName">charge_name</property>
                     <property name="dataType">string</property>
+                    <property name="nativeDataType">0</property>
                 </structure>
                 <structure>
                     <property name="position">9</property>
                     <property name="name">currency_symbol</property>
                     <property name="nativeName">currency_symbol</property>
                     <property name="dataType">string</property>
+                    <property name="nativeDataType">0</property>
                 </structure>
                 <structure>
                     <property name="position">10</property>
                     <property name="name">vat_percentage</property>
                     <property name="nativeName">vat_percentage</property>
                     <property name="dataType">decimal</property>
+                    <property name="nativeDataType">0</property>
                 </structure>
                 <structure>
                     <property name="position">11</property>
                     <property name="name">vat_amount</property>
                     <property name="nativeName">vat_amount</property>
                     <property name="dataType">decimal</property>
+                    <property name="nativeDataType">0</property>
                 </structure>
                 <structure>
                     <property name="position">12</property>
                     <property name="name">total_amount</property>
                     <property name="nativeName">total_amount</property>
                     <property name="dataType">decimal</property>
+                    <property name="nativeDataType">0</property>
                 </structure>
                 <structure>
                     <property name="position">13</property>
                     <property name="name">tax_component_name</property>
                     <property name="nativeName">tax_component_name</property>
                     <property name="dataType">string</property>
+                    <property name="nativeDataType">0</property>
                 </structure>
             </list-property>
             <xml-property name="queryText"><![CDATA[SELECT
     c.display_name AS client_name,
-    c.id As client_id,
+    c.id AS client_id,
     c.account_no AS account_no,
     off.name AS office_name,
 
@@ -345,10 +330,10 @@
     ch.name AS charge_name,
     curr.display_symbol AS currency_symbol,
 
-    COALESCE(tc.percentage,0) AS vat_percentage,
-    (cc.amount * (COALESCE(tc.percentage,0 )/ 100.0)) AS vat_amount,
-    (cc.amount + (cc.amount * (COALESCE(tc.percentage,0) / 100.0))) AS total_amount,
-    COALESCE(tc.name, 'No VAT Applied')AS tax_component_name
+    COALESCE(tc.percentage, 0) AS vat_percentage,
+    (cc.amount * (COALESCE(tc.percentage, 0) / 100.0)) AS vat_amount,
+    (cc.amount + (cc.amount * (COALESCE(tc.percentage, 0) / 100.0))) AS total_amount,
+    COALESCE(tc.name, 'No Tax Applied') AS tax_component_name
 
 FROM m_client_charge cc
 JOIN m_client c ON c.id = cc.client_id
@@ -356,13 +341,10 @@ JOIN m_office off ON off.id = c.office_id
 JOIN m_charge ch ON ch.id = cc.charge_id
 JOIN m_currency curr ON curr.code = ch.currency_code
 LEFT JOIN m_tax_group_mappings tgm ON tgm.tax_group_id = ch.tax_group_id
-	AND cc.charge_due_date >= tgm.start_date  
-  AND (tgm.end_date IS NULL OR cc.charge_due_date <= tgm.end_date)
+    AND cc.charge_due_date >= tgm.start_date  
+    AND (tgm.end_date IS NULL OR cc.charge_due_date <= tgm.end_date)
 LEFT JOIN m_tax_component tc ON tc.id = tgm.tax_component_id
-	AND tc.name LIKE '%VAT%'
-WHERE cc.id = ?
- 
-]]></xml-property>
+WHERE cc.id = ?]]></xml-property>
             <xml-property name="designerValues"><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
 <model:DesignValues xmlns:design="http://www.eclipse.org/datatools/connectivity/oda/design" xmlns:model="http://www.eclipse.org/birt/report/model/adapter/odaModel">
   <Version>2.0</Version>
@@ -647,13 +629,13 @@ WHERE cc.id = ?
             <property name="height">3.4583333333333335in</property>
             <property name="width">2.59375in</property>
             <column id="370">
-                <property name="width">0.7604166666666666in</property>
+                <property name="width">1in</property>
             </column>
             <column id="442">
-                <property name="width">1.2291666666666667in</property>
+                <property name="width">1.1041666666666667in</property>
             </column>
             <column id="371">
-                <property name="width">0.6041666666666666in</property>
+                <property name="width">0.4895833333333333in</property>
             </column>
             <row id="372">
                 <property name="height">0.5208333333333334in</property>
@@ -692,16 +674,21 @@ WHERE cc.id = ?
                 </cell>
             </row>
             <row id="378">
+                <property name="borderBottomColor">#000000</property>
+                <property name="borderBottomStyle">dotted</property>
+                <property name="borderBottomWidth">1px</property>
                 <property name="height">0.25in</property>
                 <cell id="379">
                     <label id="444">
-                        <text-property name="text">Fecha</text-property>
+                        <property name="textAlign">left</property>
+                        <text-property name="text">Fecha:</text-property>
                     </label>
                 </cell>
                 <cell id="430">
                     <property name="colSpan">2</property>
                     <property name="rowSpan">1</property>
                     <data id="453">
+                        <property name="textAlign">right</property>
                         <property name="dataSet">MX-116</property>
                         <list-property name="boundDataColumns">
                             <structure>
@@ -721,7 +708,8 @@ WHERE cc.id = ?
                     <label id="445">
                         <property name="fontWeight">bold</property>
                         <property name="color">black</property>
-                        <text-property name="text">Cliente</text-property>
+                        <property name="textAlign">left</property>
+                        <text-property name="text">Cliente:</text-property>
                     </label>
                 </cell>
                 <cell id="431">
@@ -729,6 +717,7 @@ WHERE cc.id = ?
                     <property name="rowSpan">1</property>
                     <data id="481">
                         <property name="fontWeight">bold</property>
+                        <property name="textAlign">right</property>
                         <property name="dataSet">MX-116</property>
                         <list-property name="boundDataColumns">
                             <structure>
@@ -748,7 +737,8 @@ WHERE cc.id = ?
                 <cell id="385">
                     <label id="456">
                         <property name="fontSize">7pt</property>
-                        <text-property name="text">ID del Cliente</text-property>
+                        <property name="textAlign">left</property>
+                        <text-property name="text">ID del Cliente:</text-property>
                     </label>
                 </cell>
                 <cell id="432">
@@ -756,6 +746,7 @@ WHERE cc.id = ?
                     <property name="rowSpan">1</property>
                     <data id="480">
                         <property name="fontSize">7pt</property>
+                        <property name="textAlign">right</property>
                         <property name="dataSet">MX-116</property>
                         <list-property name="boundDataColumns">
                             <structure>
@@ -770,10 +761,14 @@ WHERE cc.id = ?
                 </cell>
             </row>
             <row id="387">
+                <property name="borderBottomColor">#000000</property>
+                <property name="borderBottomStyle">dotted</property>
+                <property name="borderBottomWidth">1px</property>
                 <property name="height">0.23958333333333334in</property>
                 <cell id="388">
                     <label id="446">
                         <property name="fontSize">7pt</property>
+                        <property name="textAlign">left</property>
                         <text-property name="text">Núm de Cuenta:</text-property>
                     </label>
                 </cell>
@@ -782,6 +777,7 @@ WHERE cc.id = ?
                     <property name="rowSpan">1</property>
                     <data id="457">
                         <property name="fontSize">7pt</property>
+                        <property name="textAlign">right</property>
                         <property name="dataSet">MX-116</property>
                         <list-property name="boundDataColumns">
                             <structure>
@@ -799,6 +795,7 @@ WHERE cc.id = ?
                 <property name="height">0.21875in</property>
                 <cell id="391">
                     <label id="447">
+                        <property name="textAlign">left</property>
                         <text-property name="text">Servicio:</text-property>
                     </label>
                 </cell>
@@ -806,6 +803,7 @@ WHERE cc.id = ?
                     <property name="colSpan">2</property>
                     <property name="rowSpan">1</property>
                     <data id="458">
+                        <property name="textAlign">right</property>
                         <property name="dataSet">MX-116</property>
                         <list-property name="boundDataColumns">
                             <structure>
@@ -824,38 +822,27 @@ WHERE cc.id = ?
                 <cell id="394">
                     <label id="448">
                         <property name="fontWeight">bold</property>
+                        <property name="textAlign">left</property>
                         <text-property name="text">Amount:</text-property>
                     </label>
                 </cell>
                 <cell id="435">
+                    <property name="colSpan">2</property>
+                    <property name="rowSpan">1</property>
                     <data id="459">
                         <property name="fontWeight">bold</property>
+                        <property name="textAlign">center</property>
                         <property name="dataSet">MX-116</property>
                         <list-property name="boundDataColumns">
                             <structure>
                                 <property name="name">commission_amount</property>
                                 <text-property name="displayName">commission_amount</text-property>
-                                <expression name="expression" type="javascript">dataSetRow["commission_amount"]</expression>
-                                <property name="dataType">decimal</property>
+                                <expression name="expression" type="javascript">dataSetRow["commission_amount"] + " " + dataSetRow["currency_symbol"]</expression>
+                                <property name="dataType">string</property>
+                                <property name="allowExport">true</property>
                             </structure>
                         </list-property>
                         <property name="resultSetColumn">commission_amount</property>
-                    </data>
-                </cell>
-                <cell id="395">
-                    <data id="476">
-                        <property name="fontSize">8pt</property>
-                        <property name="fontWeight">bold</property>
-                        <property name="dataSet">MX-116</property>
-                        <list-property name="boundDataColumns">
-                            <structure>
-                                <property name="name">currency_symbol</property>
-                                <text-property name="displayName">currency_symbol</text-property>
-                                <expression name="expression" type="javascript">dataSetRow["currency_symbol"]</expression>
-                                <property name="dataType">string</property>
-                            </structure>
-                        </list-property>
-                        <property name="resultSetColumn">currency_symbol</property>
                     </data>
                 </cell>
             </row>
@@ -863,15 +850,16 @@ WHERE cc.id = ?
                 <property name="height">0.22916666666666666in</property>
                 <cell id="397">
                     <data id="482">
+                        <property name="textAlign">left</property>
                         <property name="dataSet">MX-116</property>
                         <list-property name="boundDataColumns">
                             <structure>
                                 <property name="name">vat_percentage</property>
                                 <text-property name="displayName">vat_percentage</text-property>
                                 <expression name="expression" type="javascript">(dataSetRow["vat_percentage"] != null &amp;&amp; dataSetRow["vat_percentage"] > 0) &#13;
-? "IVA (" + Math.round(dataSetRow["vat_percentage"]) + "%)" &#13;
-: "Sin IVA"</expression>
-                                <property name="dataType">decimal</property>
+? dataSetRow["tax_component_name"] + ":" &#13;
+: dataSetRow["tax_component_name"] + ":"</expression>
+                                <property name="dataType">string</property>
                                 <property name="allowExport">true</property>
                             </structure>
                         </list-property>
@@ -879,40 +867,32 @@ WHERE cc.id = ?
                     </data>
                 </cell>
                 <cell id="436">
+                    <property name="colSpan">2</property>
+                    <property name="rowSpan">1</property>
                     <data id="475">
+                        <property name="textAlign">right</property>
                         <property name="dataSet">MX-116</property>
                         <list-property name="boundDataColumns">
                             <structure>
                                 <property name="name">vat_amount</property>
                                 <text-property name="displayName">vat_amount</text-property>
-                                <expression name="expression" type="javascript">dataSetRow["vat_amount"]</expression>
-                                <property name="dataType">decimal</property>
+                                <expression name="expression" type="javascript">dataSetRow["vat_amount"] + " " + dataSetRow["currency_symbol"]</expression>
+                                <property name="dataType">string</property>
+                                <property name="allowExport">true</property>
                             </structure>
                         </list-property>
                         <property name="resultSetColumn">vat_amount</property>
                     </data>
                 </cell>
-                <cell id="398">
-                    <data id="477">
-                        <property name="fontSize">8pt</property>
-                        <property name="fontWeight">bold</property>
-                        <property name="dataSet">MX-116</property>
-                        <list-property name="boundDataColumns">
-                            <structure>
-                                <property name="name">currency_symbol</property>
-                                <text-property name="displayName">currency_symbol</text-property>
-                                <expression name="expression" type="javascript">dataSetRow["currency_symbol"]</expression>
-                                <property name="dataType">string</property>
-                            </structure>
-                        </list-property>
-                        <property name="resultSetColumn">currency_symbol</property>
-                    </data>
-                </cell>
             </row>
             <row id="399">
+                <property name="borderBottomColor">#000000</property>
+                <property name="borderBottomStyle">dotted</property>
+                <property name="borderBottomWidth">1px</property>
                 <property name="height">0.2708333333333333in</property>
                 <cell id="400">
                     <label id="450">
+                        <property name="textAlign">left</property>
                         <text-property name="text">Inf. Fiscal:</text-property>
                     </label>
                 </cell>
@@ -920,6 +900,7 @@ WHERE cc.id = ?
                     <property name="colSpan">2</property>
                     <property name="rowSpan">1</property>
                     <data id="478">
+                        <property name="textAlign">right</property>
                         <property name="dataSet">MX-116</property>
                         <list-property name="boundDataColumns">
                             <structure>
@@ -939,41 +920,28 @@ WHERE cc.id = ?
                     <label id="451">
                         <property name="fontSize">11pt</property>
                         <property name="fontWeight">bold</property>
+                        <property name="textAlign">left</property>
                         <text-property name="text">TOTAL:</text-property>
                     </label>
                 </cell>
                 <cell id="438">
-                    <property name="colSpan">1</property>
+                    <property name="colSpan">2</property>
                     <property name="rowSpan">1</property>
                     <data id="479">
                         <property name="fontSize">11pt</property>
                         <property name="fontWeight">bold</property>
+                        <property name="textAlign">center</property>
                         <property name="dataSet">MX-116</property>
                         <list-property name="boundDataColumns">
                             <structure>
                                 <property name="name">total_amount</property>
                                 <text-property name="displayName">total_amount</text-property>
-                                <expression name="expression" type="javascript">dataSetRow["total_amount"]</expression>
-                                <property name="dataType">decimal</property>
+                                <expression name="expression" type="javascript">dataSetRow["total_amount"] + " " + dataSetRow["currency_symbol"]</expression>
+                                <property name="dataType">string</property>
+                                <property name="allowExport">true</property>
                             </structure>
                         </list-property>
                         <property name="resultSetColumn">total_amount</property>
-                    </data>
-                </cell>
-                <cell id="483">
-                    <property name="fontWeight">bold</property>
-                    <data id="484">
-                        <property name="fontSize">8pt</property>
-                        <property name="dataSet">MX-116</property>
-                        <list-property name="boundDataColumns">
-                            <structure>
-                                <property name="name">currency_symbol</property>
-                                <text-property name="displayName">currency_symbol</text-property>
-                                <expression name="expression" type="javascript">dataSetRow["currency_symbol"]</expression>
-                                <property name="dataType">string</property>
-                            </structure>
-                        </list-property>
-                        <property name="resultSetColumn">currency_symbol</property>
                     </data>
                 </cell>
             </row>
@@ -982,7 +950,8 @@ WHERE cc.id = ?
                 <property name="height">0.2708333333333333in</property>
                 <cell id="406">
                     <label id="452">
-                        <text-property name="text">Folio</text-property>
+                        <property name="textAlign">left</property>
+                        <text-property name="text">Folio:</text-property>
                     </label>
                 </cell>
                 <cell id="439">
@@ -991,6 +960,7 @@ WHERE cc.id = ?
                     <property name="fontSize">7%</property>
                     <data id="485">
                         <property name="fontSize">7pt</property>
+                        <property name="textAlign">right</property>
                         <property name="dataSet">MX-116</property>
                         <list-property name="boundDataColumns">
                             <structure>
