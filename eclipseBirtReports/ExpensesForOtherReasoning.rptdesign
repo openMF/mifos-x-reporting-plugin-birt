@@ -637,6 +637,10 @@ WHERE mst.id = ?]]></xml-property>
                 <cell id="23">
                     <property name="fontSize">8pt</property>
                     <data id="60">
+                        <structure name="dateTimeFormat">
+                            <property name="category">Custom</property>
+                            <property name="pattern">dd/MM/yyyy</property>
+                        </structure>
                         <property name="dataSet">Data Set</property>
                         <list-property name="boundDataColumns">
                             <structure>
@@ -666,6 +670,23 @@ WHERE mst.id = ?]]></xml-property>
                 </cell>
                 <cell id="25">
                     <property name="fontSize">8pt</property>
+                    <property name="textAlign">right</property>
+                    <data id="62">
+                        <structure name="dateTimeFormat">
+                            <property name="category">Custom</property>
+                            <property name="pattern">HH:mm</property>
+                        </structure>
+                        <property name="dataSet">Data Set</property>
+                        <list-property name="boundDataColumns">
+                            <structure>
+                                <property name="name">created_on_utc</property>
+                                <text-property name="displayName">transaction_date</text-property>
+                                <expression name="expression" type="javascript">dataSetRow["created_on_utc"]</expression>
+                                <property name="dataType">date-time</property>
+                            </structure>
+                        </list-property>
+                        <property name="resultSetColumn">created_on_utc</property>
+                    </data>
                 </cell>
             </row>
             <row id="26">
@@ -808,7 +829,7 @@ WHERE mst.id = ?]]></xml-property>
                     <data id="74">
                         <structure name="numberFormat">
                             <property name="category">Fixed</property>
-                            <property name="pattern">###0.00{RoundingMode=HALF_UP}</property>
+                            <property name="pattern">$ #,##0.00{RoundingMode=HALF_UP}</property>
                         </structure>
                         <property name="dataSet">Data Set</property>
                         <list-property name="boundDataColumns">
