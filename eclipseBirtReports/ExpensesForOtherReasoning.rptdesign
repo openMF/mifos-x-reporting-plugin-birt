@@ -63,9 +63,6 @@
             <property name="isRequired">true</property>
             <property name="dataType">integer</property>
             <property name="distinct">true</property>
-            <simple-property-list name="defaultValue">
-                <value type="constant">390</value>
-            </simple-property-list>
             <list-property name="selectionList"/>
             <property name="paramType">simple</property>
             <property name="controlType">text-box</property>
@@ -158,7 +155,6 @@
                     <property name="paramName">transactionId</property>
                     <property name="dataType">integer</property>
                     <property name="position">1</property>
-                    <expression name="defaultValue" type="javascript">390</expression>
                     <property name="isInput">true</property>
                     <property name="isOutput">false</property>
                 </structure>
