@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <report xmlns="http://www.eclipse.org/birt/2005/design" version="3.2.23" id="1">
     <property name="createdBy">Eclipse BIRT Designer Version 4.2.2.v201301221637 Build &lt;4.2.2.v20130206-1509></property>
 
@@ -307,7 +307,7 @@
 FROM m_savings_account_transaction mst
 LEFT JOIN m_savings_account msa ON msa.id = mst.savings_account_id
 LEFT JOIN m_client mc ON msa.client_id = mc.id
-LEFT JOIN m_office mof ON mof.id = mc.id
+LEFT JOIN m_office mof ON mof.id = mc.office_id
 LEFT JOIN m_currency mcu ON msa.currency_code = mcu.code
 LEFT JOIN m_appuser mau ON mau.id = mst.created_by
 WHERE mst.id = ?]]></xml-property>
