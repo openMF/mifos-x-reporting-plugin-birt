@@ -11,24 +11,22 @@ import static org.apache.fineract.infrastructure.core.domain.FineractPlatformTen
 
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
-import uk.co.spudsoft.birt.emitters.excel.ExcelEmitter;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.ArrayList;
-import java.util.Base64;
 import javax.sql.DataSource;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.infrastructure.core.api.ApiParameterHelper;
 import org.apache.fineract.infrastructure.core.config.FineractProperties;
 import org.apache.fineract.infrastructure.core.domain.FineractPlatformTenant;
@@ -43,9 +41,9 @@ import org.apache.fineract.infrastructure.security.service.PlatformSecurityConte
 import org.eclipse.birt.report.engine.api.EXCELRenderOption;
 import org.eclipse.birt.report.engine.api.HTMLRenderOption;
 import org.eclipse.birt.report.engine.api.HTMLServerImageHandler;
-import org.eclipse.birt.report.engine.api.IImage;
 import org.eclipse.birt.report.engine.api.IEngineTask;
 import org.eclipse.birt.report.engine.api.IGetParameterDefinitionTask;
+import org.eclipse.birt.report.engine.api.IImage;
 import org.eclipse.birt.report.engine.api.IPDFRenderOption;
 import org.eclipse.birt.report.engine.api.IParameterDefn;
 import org.eclipse.birt.report.engine.api.IReportEngine;
@@ -54,15 +52,15 @@ import org.eclipse.birt.report.engine.api.IRunAndRenderTask;
 import org.eclipse.birt.report.engine.api.PDFRenderOption;
 import org.eclipse.birt.report.engine.api.RenderOption;
 import org.eclipse.birt.report.model.api.DesignElementHandle;
+import org.eclipse.birt.report.model.api.EmbeddedImageHandle;
 import org.eclipse.birt.report.model.api.LibraryHandle;
 import org.eclipse.birt.report.model.api.OdaDataSourceHandle;
-import org.eclipse.birt.report.model.api.EmbeddedImageHandle;
 import org.eclipse.birt.report.model.api.ReportDesignHandle;
+import org.eclipse.birt.report.model.api.SlotHandle;
 import org.eclipse.birt.report.model.api.StructureFactory;
 import org.eclipse.birt.report.model.api.activity.SemanticException;
 import org.eclipse.birt.report.model.api.elements.DesignChoiceConstants;
 import org.eclipse.birt.report.model.api.elements.structures.EmbeddedImage;
-import org.eclipse.birt.report.model.api.SlotHandle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,6 +69,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+import uk.co.spudsoft.birt.emitters.excel.ExcelEmitter;
 
 @Service
 @ReportService(type = "BIRT")
@@ -97,7 +96,8 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
   private final ApplicationContext contextVar;
 
   // Centralized Base64 logo for consistent rendering across environments and easier maintenance
-  private static final String CENTRAL_LOGO_BASE64 = """
+  private static final String CENTRAL_LOGO_BASE64 =
+      """
   iVBORw0KGgoAAAANSUhEUgAAAgAAAAEACAYAAADFkM5nAAA6DElEQVR42u3deZwcZZ0/8M+3emYSjhwz
                 Uz3T0zPgyKVyeAD6IwGEZEHlVFQit4ACq6sQbljkSgigCEncxXMRZRdX8UJJRDkSBAmyS4IuBtYlQIDJ
                 XN0zgQRIZqa7vr8/eo6eme6q6que6snn/dIXyXRVPU9VZub51vN8n+cBiIiIiIiIiIiIiIiIiIiIiIiI
@@ -348,7 +348,6 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
                 IiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIi
                 IiIiIiIiIiIiIiIiIqpy/x9hubBNhHfHDQAAAABJRU5ErkJggg==""";
 
-
   @Autowired
   public BirtReportingProcessServiceImpl(
       final PlatformSecurityContext context,
@@ -499,12 +498,13 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
           excelOptions.setOutputFormat("xls_spudsoft");
           excelOptions.setOutputStream(baos);
 
-          // Use Spudsoft XLS emitter to support images, bypassing limitations in BIRT's native XLS emitter
+          // Use Spudsoft XLS emitter to support images, bypassing limitations in BIRT's native XLS
+          // emitter
           excelOptions.setEmitterID("uk.co.spudsoft.birt.emitters.excel.XlsEmitter");
-          
+
           // Prevents headers from disappearing when using Spudsoft emitter
           excelOptions.setOption(ExcelEmitter.STRUCTURED_HEADER, true);
-          
+
           // Keeps report data in a single continuous sheet for easier filtering/sorting
           excelOptions.setOption(ExcelEmitter.SINGLE_SHEET, true);
 
@@ -575,45 +575,50 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
           htmlOptions.setOutputFormat("html");
           htmlOptions.setEmbeddable(true);
           htmlOptions.setOutputStream(baos);
-          
+
           htmlOptions.setSupportedImageFormats("PNG");
 
-          // Custom image handler to embed images as Base64 (Data URL) to avoid broken images caused by BIRT's default temp file handling
-          htmlOptions.setImageHandler(new HTMLServerImageHandler() {
-            @Override
-            protected String handleImage(IImage image, Object context, String prefix, boolean needMap) {
-              if(image == null) return "";
+          // Custom image handler to embed images as Base64 (Data URL) to avoid broken images caused
+          // by BIRT's default temp file handling
+          htmlOptions.setImageHandler(
+              new HTMLServerImageHandler() {
+                @Override
+                protected String handleImage(
+                    IImage image, Object context, String prefix, boolean needMap) {
+                  if (image == null) return "";
 
-              try {
-                // Read the image data into a byte array
-                byte[] imageBytes = null;
-                
-                // Prioritize direct byte access for injected images 
-                if(image.getImageData() != null) {
-                  imageBytes = image.getImageData();
+                  try {
+                    // Read the image data into a byte array
+                    byte[] imageBytes = null;
+
+                    // Prioritize direct byte access for injected images
+                    if (image.getImageData() != null) {
+                      imageBytes = image.getImageData();
+                    }
+
+                    // Fallback: Read from stream if no direct memory buffer
+                    else if (image.getImageStream() != null) {
+                      imageBytes = IOUtils.toByteArray(image.getImageStream());
+                    }
+
+                    if (imageBytes == null || imageBytes.length == 0) {
+                      logger.warn(
+                          "Image data is empty for image with MIME type '{}'", image.getMimeType());
+                      return "";
+                    }
+
+                    // Encode the image bytes to Base64
+                    String imageString = Base64.getEncoder().encodeToString(imageBytes);
+
+                    // Return a Data URL that embeds the image directly in the HTML
+                    return MessageFormat.format(
+                        "data:{0};base64,{1}", image.getMimeType(), imageString);
+                  } catch (IOException e) {
+                    logger.error("Error embedding image in HTML output", e);
+                    return "";
+                  }
                 }
-
-                // Fallback: Read from stream if no direct memory buffer
-                else if (image.getImageStream() != null) {
-                  imageBytes = IOUtils.toByteArray(image.getImageStream());
-                }
-
-                if (imageBytes == null || imageBytes.length == 0) {
-                  logger.warn("Image data is empty for image with MIME type '{}'", image.getMimeType());
-                  return "";
-                }
-
-                // Encode the image bytes to Base64
-                String imageString = Base64.getEncoder().encodeToString(imageBytes);
-
-                // Return a Data URL that embeds the image directly in the HTML
-                return MessageFormat.format("data:{0};base64,{1}", image.getMimeType(), imageString);
-              } catch (IOException e) {
-                logger.error("Error embedding image in HTML output", e);
-                return "";
-              }
-            }
-          });
+              });
 
           task.setRenderOption(htmlOptions);
           task.run();
@@ -779,13 +784,13 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
     try {
       // remove any whitespace characters from the base64 string, which can cause decoding issues
       String cleanBase64 = CENTRAL_LOGO_BASE64.replaceAll("\\s+", "");
-      
+
       // Decode the cleaned base64 string to get the image bytes
       byte[] imageBytes = java.util.Base64.getDecoder().decode(cleanBase64);
 
       EmbeddedImage newImage = StructureFactory.createEmbeddedImage();
       newImage.setName("mifos_logo_icon_170951.png");
-      newImage.setType(DesignChoiceConstants.IMAGE_TYPE_IMAGE_PNG); 
+      newImage.setType(DesignChoiceConstants.IMAGE_TYPE_IMAGE_PNG);
       newImage.setData(imageBytes);
 
       List<EmbeddedImage> imagesToRemove = new ArrayList<>();
@@ -794,14 +799,13 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
       // Iterate through existing images to find any with the same name and mark them for removal
       while (iterator.hasNext()) {
         EmbeddedImageHandle imgHandle = (EmbeddedImageHandle) iterator.next();
-        if("mifos_logo_icon_170951.png".equals(imgHandle.getName())) {
+        if ("mifos_logo_icon_170951.png".equals(imgHandle.getName())) {
           imagesToRemove.add((EmbeddedImage) imgHandle.getStructure());
         }
       }
 
-      if(!imagesToRemove.isEmpty()){
+      if (!imagesToRemove.isEmpty()) {
         designHandle.dropImage(imagesToRemove);
-
       }
 
       designHandle.addImage(newImage);
