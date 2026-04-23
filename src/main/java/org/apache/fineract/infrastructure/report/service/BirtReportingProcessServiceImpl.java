@@ -13,7 +13,7 @@ import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
+import java.io.InputStream;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -58,7 +58,6 @@ import org.eclipse.birt.report.model.api.OdaDataSourceHandle;
 import org.eclipse.birt.report.model.api.ReportDesignHandle;
 import org.eclipse.birt.report.model.api.SlotHandle;
 import org.eclipse.birt.report.model.api.StructureFactory;
-import org.eclipse.birt.report.model.api.activity.SemanticException;
 import org.eclipse.birt.report.model.api.elements.DesignChoiceConstants;
 import org.eclipse.birt.report.model.api.elements.structures.EmbeddedImage;
 import org.slf4j.Logger;
@@ -94,6 +93,9 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
   private final ApplicationContext applicationContext;
   private final PlatformSecurityContext context;
   private final ApplicationContext contextVar;
+
+  // Centralized logo name for consistent reference
+  private static final String CENTRAL_LOGO_NAME = "mifos_logo_icon_170951.png";
 
   // Centralized Base64 logo for consistent rendering across environments and easier maintenance
   private static final String CENTRAL_LOGO_BASE64 =
@@ -576,7 +578,9 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
           htmlOptions.setEmbeddable(true);
           htmlOptions.setOutputStream(baos);
 
-          htmlOptions.setSupportedImageFormats("PNG");
+          // Supported image formats for HTML rendering to ensure backward compatibility
+          // with existing reports using various formats (JPEG, GIF, SVG, etc.)
+          htmlOptions.setSupportedImageFormats("PNG;GIF;JPG;JPEG;BMP;SVG");
 
           // Custom image handler to embed images as Base64 (Data URL) to avoid broken images caused
           // by BIRT's default temp file handling
@@ -587,6 +591,8 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
                     IImage image, Object context, String prefix, boolean needMap) {
                   if (image == null) return "";
 
+                  // Use Exception to catch any unforeseen issues and suppress failures for a single
+                  // image
                   try {
                     // Read the image data into a byte array
                     byte[] imageBytes = null;
@@ -596,9 +602,11 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
                       imageBytes = image.getImageData();
                     }
 
-                    // Fallback: Read from stream if no direct memory buffer
+                    // Fallback: Read from stream and ensure it is CLOSED using try-with-resources
                     else if (image.getImageStream() != null) {
-                      imageBytes = IOUtils.toByteArray(image.getImageStream());
+                      try (InputStream is = image.getImageStream()) {
+                        imageBytes = IOUtils.toByteArray(is);
+                      }
                     }
 
                     if (imageBytes == null || imageBytes.length == 0) {
@@ -613,7 +621,9 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
                     // Return a Data URL that embeds the image directly in the HTML
                     return MessageFormat.format(
                         "data:{0};base64,{1}", image.getMimeType(), imageString);
-                  } catch (IOException e) {
+
+                  } catch (Exception e) {
+                    // Catch all exceptions to avoid aborting the whole report
                     logger.error("Error embedding image in HTML output", e);
                     return "";
                   }
@@ -789,7 +799,7 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
       byte[] imageBytes = java.util.Base64.getDecoder().decode(cleanBase64);
 
       EmbeddedImage newImage = StructureFactory.createEmbeddedImage();
-      newImage.setName("mifos_logo_icon_170951.png");
+      newImage.setName(CENTRAL_LOGO_NAME);
       newImage.setType(DesignChoiceConstants.IMAGE_TYPE_IMAGE_PNG);
       newImage.setData(imageBytes);
 
@@ -799,7 +809,7 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
       // Iterate through existing images to find any with the same name and mark them for removal
       while (iterator.hasNext()) {
         EmbeddedImageHandle imgHandle = (EmbeddedImageHandle) iterator.next();
-        if ("mifos_logo_icon_170951.png".equals(imgHandle.getName())) {
+        if (CENTRAL_LOGO_NAME.equals(imgHandle.getName())) {
           imagesToRemove.add((EmbeddedImage) imgHandle.getStructure());
         }
       }
@@ -811,9 +821,10 @@ public class BirtReportingProcessServiceImpl implements ReportingProcessService 
       designHandle.addImage(newImage);
       logger.info("Central logo injected successfully into report design");
 
-    } catch (SemanticException e) {
+    } catch (Exception e) {
+      // Broaden to Exception to catch decoding errors
       logger.warn("Could not inject central logo into report design: {}", e.getMessage());
-      logger.warn("SemanticException details:", e);
+      logger.warn("Logo injection failure details:", e);
     }
   }
 
